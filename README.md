@@ -37,6 +37,8 @@ The SAP-1 is a minimalist 8-bit computer architecture designed to teach low-leve
 
 ## 🎮 Features
 * **Formula Builder:** Automatically generates assembly machine code into RAM for formulas like A ± B ± C.
+* **Dynamic LDA Address Selection:** Allows users to choose custom RAM addresses (ranging from `0H` to `FH`) for the `LDA` instruction directly through an interactive UI dropdown.
+* **Dynamic Program Flow & Control:** Automatically handles instruction alignment, including data storage, `OUT`, and `HLT` placements depending on the formula length.
 * **Real-time Bus & Control Signals:** Visual glow on active data transfers and control signals (`Ep`, `Lm`, `CE`, `Li`, `Ea`, `La`, `Su`, `Eu`, `Lb`, `Lo`).
 * **8-bit Binary LED Display:** Visual circle indicators simulating physical hardware output LEDs.
 * **T-State Micro-Step Inspection:** Execute clock cycles state-by-state (`T1` through `T6`) or run automatically with adjustable clock speed.
@@ -44,10 +46,10 @@ The SAP-1 is a minimalist 8-bit computer architecture designed to teach low-leve
 ---
 
 ## 👥 Group Members
-* Member 1 Name
-* Member 2 Name
-* Member 3 Name
-* Member 4 Name
-* Member 5 Name
+* Member 1 Gulane, John Rey
+* Member 2 Jose, Laurence
+* Member 3 Manalang, jan Vincent
+* Member 4 Yabut, Emannuelle
+* Member 5 Zamora, Ma. Frijida Grey
 
 *Course: Computer Architecture and Organization*

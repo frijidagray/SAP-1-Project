@@ -442,8 +442,9 @@ function resetCPU() {
     DOM.btnRun.textContent = '▶ Run';
     DOM.btnStep.disabled = false;
     DOM.aluOp.textContent = '—';
-    outputCount = 0;
-    DOM.outputHistory.innerHTML = '<div class="history-empty">No outputs yet</div>';
+    
+    // Hindi na mabubura ang history dahil tinanggal na natin ang pag-clear dito.
+    
     clearBlockHighlights();
     updateAllDisplays();
     log('CPU Reset.', 'info');
@@ -454,6 +455,9 @@ function buildFormulaProgram() {
     const hexA = document.getElementById('valA').value.trim() || '00';
     const hexB = document.getElementById('valB').value.trim() || '00';
     const hexC = document.getElementById('valC').value.trim() || '00';
+    
+    const ldaSourceAddr = parseInt(document.getElementById('loadOp').value, 16);
+
     const op1 = document.getElementById('op1').value;
     const op2 = document.getElementById('op2').value;
 
@@ -467,15 +471,16 @@ function buildFormulaProgram() {
     }
 
     CPU.RAM.fill(0);
+    const loadInstruction = 0x00 | ldaSourceAddr;
     const opCode1 = (op1 === 'ADD') ? 0x1A : 0x2A;
     const opCode2 = (op2 === 'ADD') ? 0x1B : 0x2B;
 
-    CPU.RAM[0x0] = 0x09;
+    CPU.RAM[0x0] = loadInstruction;
     CPU.RAM[0x1] = opCode1;
     CPU.RAM[0x2] = opCode2;
     CPU.RAM[0x3] = 0xEF;
     CPU.RAM[0x4] = 0xFF;
-    CPU.RAM[0x9] = valA & 0xFF;
+    CPU.RAM[ldaSourceAddr] = valA & 0xFF;
     CPU.RAM[0xA] = valB & 0xFF;
     CPU.RAM[0xB] = valC & 0xFF;
 
@@ -570,6 +575,9 @@ function init() {
     DOM.btnBuildFormula.addEventListener('click', buildFormulaProgram);
     DOM.btnClearLog.addEventListener('click', clearLog);
     DOM.inputOpcode.addEventListener('change', handleOpcodeChange);
+    DOM.inputOperand.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+    });
 
     DOM.speedSlider.addEventListener('input', () => {
         DOM.speedValue.textContent = DOM.speedSlider.value + 'ms';
