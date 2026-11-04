@@ -1,8 +1,6 @@
 # SAP-1 Architecture Simulator
 
-> **Course:** Computer Architecture and Organization  
-> **Group Size:** 5 Members  
-> **Deadline:** October 30, 2026  
+> **Subject:** Computer Architecture and Organization  
 > **Deliverable:** Web-Based Graphical Hardware Simulator & Documentation  
 
 A web-based interactive simulator for the **Simple-As-Possible 1 (SAP-1)** computer architecture. This tool visually demonstrates the fetch-decode-execute instruction cycle, micro-control signals, register operations, and W-BUS data flow in real-time.
