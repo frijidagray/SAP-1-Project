@@ -894,3 +894,31 @@ document.addEventListener('DOMContentLoaded', init);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyTheme); else applyTheme();
 })();
+function triggerBobaFlow(sourceId, targetId) {
+    const source = document.getElementById(sourceId);
+    const target = document.getElementById(targetId);
+    if (!source || !target) return;
+
+    const sourceRect = source.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            const pearl = document.createElement('div');
+            pearl.className = 'boba-pearl';
+            document.body.appendChild(pearl);
+
+            const startX = sourceRect.left + sourceRect.width / 2;
+            const startY = sourceRect.top + sourceRect.height / 2;
+            const diffX = (targetRect.left + targetRect.width / 2) - startX;
+            const diffY = (targetRect.top + targetRect.height / 2) - startY;
+
+            pearl.style.left = `${startX}px`;
+            pearl.style.top = `${startY}px`;
+            pearl.style.setProperty('--travel', `${diffX}px, ${diffY}px`);
+            pearl.style.animation = `flowAcross 0.8s ease-in-out forwards`;
+
+            setTimeout(() => pearl.remove(), 800);
+        }, i * 100);
+    }
+}
