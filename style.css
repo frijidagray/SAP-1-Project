@@ -108,7 +108,7 @@ body {
     margin: 1.5rem auto;
     padding: 0 1rem;
     display: grid;
-    grid-template-columns: 290px 1fr 280px;
+    grid-template-columns: 330px 1fr 280px;
     gap: 1.2rem;
     align-items: start;
 }
@@ -222,6 +222,7 @@ body {
 
 .formula-inputs {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.3rem;
     align-items: center;
     margin-bottom: 0.4rem;
@@ -229,7 +230,7 @@ body {
 }
 
 .formula-inputs input {
-    width: 50px;
+    width: 44px;
     padding: 0.4rem 0.3rem;
     text-align: center;
     border: 1px solid var(--border-medium);
@@ -242,7 +243,7 @@ body {
 }
 
 .op-select {
-    width: 45px;
+    width: 40px;
     padding: 0.4rem 0.2rem;
     text-align: center;
     border: 1px solid var(--pink-dark);
