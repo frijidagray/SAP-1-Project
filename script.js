@@ -8,7 +8,8 @@ const CPU = {
     currentOpcode: 0,
     currentOperand: 0,
     wbusValue: 0,
-    activeSignals: new Set()
+    activeSignals: new Set(),
+    hasProgram: false
 };
 
 const OPCODES = { LDA: 0, ADD: 1, SUB: 2, OUT: 14, HLT: 15 };
@@ -138,22 +139,31 @@ function updateRAMDisplay() {
     for (let i = 0; i < 16; i++) {
         const tr = document.createElement('tr');
         const val = CPU.RAM[i];
-        const opcode = (val >> 4) & 0xF;
-        const operand = val & 0xF;
 
+        let hexStr = '';
+        let binStr = '';
         let decoded = '';
-        if (OPCODE_NAMES[opcode] !== undefined) {
-            if (opcode === 14) decoded = 'OUT';
-            else if (opcode === 15) decoded = 'HLT';
-            else decoded = `${OPCODE_NAMES[opcode]} ${toHex1(operand)}H`;
-        } else {
-            decoded = `${toHex2(val)}H`;
-        }
+
+        if (!CPU.hasProgram || val !== 0) {
+                hexStr = `${toHex2(val)}H`;
+                binStr = toBinary8(val);
+
+            const opcode = (val >> 4) & 0xF;
+            const operand = val & 0xF;
+
+            if (i < 5 && OPCODE_NAMES[opcode] !== undefined) {
+                if (opcode === 14) decoded = 'OUT';
+                else if (opcode === 15) decoded = 'HLT';
+                else decoded = `${OPCODE_NAMES[opcode]} ${toHex1(operand)}H`;
+            } else {
+                decoded = `${toHex2(val)}H`;
+            }
+        }   
 
         tr.innerHTML = `
             <td>${toHex1(i)}H</td>
-            <td>${toHex2(val)}H</td>
-            <td style="font-size:0.7rem">${toBinary8(val)}</td>
+            <td>${hexStr}</td>
+            <td style="font-size:0.7rem">${binStr}</td>
             <td style="font-size:0.7rem">${decoded}</td>
         `;
 
@@ -442,16 +452,45 @@ function resetCPU() {
     DOM.btnRun.textContent = '▶ Run';
     DOM.btnStep.disabled = false;
     DOM.aluOp.textContent = '—';
-    
-    // Hindi na mabubura ang history dahil tinanggal na natin ang pag-clear dito.
-    
+
     clearBlockHighlights();
     updateAllDisplays();
     log('CPU Reset.', 'info');
 }
 
+function resetBuilderAndManualInputs() {
+    const loadOpSelect = document.getElementById('loadOp');
+    if (loadOpSelect) loadOpSelect.value = '9H'; // O kahit anong default address mo
+
+    const valA = document.getElementById('valA');
+    const valB = document.getElementById('valB');
+    const valC = document.getElementById('valC');
+    if (valA) valA.value = '';
+    if (valB) valB.value = '';
+    if (valC) valC.value = '';
+
+
+    const inputAddress = document.getElementById('inputAddress');
+    const inputOpcode = document.getElementById('inputOpcode');
+    const inputOperand = document.getElementById('inputOperand');
+    
+    if (inputAddress) inputAddress.value = '0';
+    if (inputOpcode) {
+        inputOpcode.value = '-1';
+        handleOpcodeChange();
+    }
+    if (inputOperand) inputOperand.value = '';
+}
+
+function resetRAMTable() {
+    CPU.RAM.fill(0);
+    CPU.hasProgram = false;
+    updateRAMDisplay();
+}
+
 // FORMULA BUILDER
 function buildFormulaProgram() {
+
     const hexA = document.getElementById('valA').value.trim() || '00';
     const hexB = document.getElementById('valB').value.trim() || '00';
     const hexC = document.getElementById('valC').value.trim() || '00';
@@ -484,7 +523,11 @@ function buildFormulaProgram() {
     CPU.RAM[0xA] = valB & 0xFF;
     CPU.RAM[0xB] = valC & 0xFF;
 
+    CPU.hasProgram = true;
+
     resetCPU();
+    updateRAMDisplay();
+
     const s1 = op1 === 'ADD' ? '+' : '−';
     const s2 = op2 === 'ADD' ? '+' : '−';
     showLoaderStatus(`Loaded: ${hexA}H ${s1} ${hexB}H ${s2} ${hexC}H`, 'success');
@@ -524,12 +567,29 @@ function writeToRAM() {
     }
 
     CPU.RAM[addr] = byteValue & 0xFF;
+    CPU.hasProgram = true;
     updateRAMDisplay();
     showLoaderStatus(`Wrote ${toHex2(byteValue)}H to ${toHex1(addr)}H`, 'success');
     log(`RAM[${toHex1(addr)}H] ← ${toHex2(byteValue)}H`, 'info');
 }
 
 function loadSampleProgram() {
+    const valA = document.getElementById('valA');
+    const valB = document.getElementById('valB');
+    const valC = document.getElementById('valC');
+    const loadOp = document.getElementById('loadOp');
+    const op1 = document.getElementById('op1');
+    const op2 = document.getElementById('op2');
+
+    if (valA) valA.value = '25';
+    if (valB) valB.value = '05';
+    if (valC) valC.value = '23';
+    if (loadOp) {
+        loadOp.value = '9'; // Subukan din ang '9' o '09' kung hindi lumitaw
+    }
+    if (op1) op1.value = 'ADD';
+    if (op2) op2.value = 'SUB';
+
     CPU.RAM.fill(0);
     CPU.RAM[0x0] = 0x09;
     CPU.RAM[0x1] = 0x1A;
@@ -539,7 +599,12 @@ function loadSampleProgram() {
     CPU.RAM[0x9] = 0x25;
     CPU.RAM[0xA] = 0x05;
     CPU.RAM[0xB] = 0x23;
+
+    CPU.hasProgram = true;
+
     resetCPU();
+    updateRAMDisplay();
+
     showLoaderStatus('Sample: 25H + 05H − 23H = 07H', 'success');
     log('Sample program loaded.', 'info');
 }
@@ -575,8 +640,15 @@ function init() {
     DOM.btnBuildFormula.addEventListener('click', buildFormulaProgram);
     DOM.btnClearLog.addEventListener('click', clearLog);
     DOM.inputOpcode.addEventListener('change', handleOpcodeChange);
+
     DOM.inputOperand.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+    });
+
+    DOM.btnReset.addEventListener('click', () => {
+        resetCPU();
+        resetRAMTable();      
+        resetBuilderAndManualInputs(); 
     });
 
     DOM.speedSlider.addEventListener('input', () => {
