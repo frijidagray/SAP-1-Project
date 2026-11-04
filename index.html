@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAP-1 Simulator</title>
+    <title>SAP-1 Milktea Shop Simulator</title>
    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -23,10 +23,11 @@
                 </div>
                 <div>
                     <h1>SAP-1 Simulator</h1>
-                    <p class="subtitle">Simple-As-Possible 1 Computer Architecture</p>
+                    <p class="subtitle">Simple-As-Possible 1 Computer Architecture (Milktea Edition)</p>
                 </div>
             </div>
             <div class="header-badge">
+                <button id="soundToggle" class="btn btn-small" style="margin-right: 10px; background: #FFCED8; border: 1px solid #FF5E8E; color: #1A1A2E; cursor: pointer; font-weight: bold;">🔇 Sound: OFF</button>
                 <span>Computer Architecture & Organization</span>
             </div>
         </div>
@@ -35,64 +36,44 @@
     <!-- MAIN LAYOUT -->
     <main class="simulator-layout">
 
-        <!-- LEFT COLUMN: Formula Builder, Program Input & RAM -->
+        <!-- LEFT COLUMN -->
         <aside class="left-panel">
-
-            <!-- FORMULA BUILDER + PROGRAM LOADER -->
+            <!-- FORMULA BUILDER -->
             <section class="panel program-loader">
                 <div class="panel-header">
                     <h2>📝 Formula Builder</h2>
                 </div>
                 <div class="panel-body">
-
-                    <!-- QUICK FORMULA BUILDER (A ± B ± C) -->
                     <div class="formula-builder">
                         <label class="formula-label">Quick Formula (A ± B ± C):</label>
-
                         <div class="formula-inputs">
                             <select id="loadOp" class="op-select" style="width: 75px; text-align: center;">
-                                <option value="0" selected>LDA 0H</option>
-                                <option value="1">LDA 1H</option>
-                                <option value="2">LDA 2H</option>
-                                <option value="3">LDA 3H</option>
-                                <option value="4">LDA 4H</option>
-                                <option value="5">LDA 5H</option>
-                                <option value="6">LDA 6H</option>
-                                <option value="7">LDA 7H</option>
-                                <option value="8">LDA 8H</option>
-                                <option value="9">LDA 9H</option>
-                                <option value="A">LDA AH</option>
-                                <option value="B">LDA BH</option>
-                                <option value="C">LDA CH</option>
-                                <option value="D">LDA DH</option>
-                                <option value="E">LDA EH</option>
-                                <option value="F">LDA FH</option>
+                                <option value="0" selected>LDA 0H</option><option value="1">LDA 1H</option>
+                                <option value="2">LDA 2H</option><option value="3">LDA 3H</option>
+                                <option value="4">LDA 4H</option><option value="5">LDA 5H</option>
+                                <option value="6">LDA 6H</option><option value="7">LDA 7H</option>
+                                <option value="8">LDA 8H</option><option value="9">LDA 9H</option>
+                                <option value="A">LDA AH</option><option value="B">LDA BH</option>
+                                <option value="C">LDA CH</option><option value="D">LDA DH</option>
+                                <option value="E">LDA EH</option><option value="F">LDA FH</option>
                             </select>
-
                             <input type="text" id="valA" placeholder="A" value="25" maxlength="2">
                             <select id="op1" class="op-select">
-                                <option value="ADD">+</option>
-                                <option value="SUB" selected>−</option>
+                                <option value="ADD">+</option><option value="SUB" selected>−</option>
                             </select>
                             <input type="text" id="valB" placeholder="B" value="05" maxlength="2">
                             <select id="op2" class="op-select">
-                                <option value="ADD">+</option>
-                                <option value="SUB" selected>−</option>
+                                <option value="ADD">+</option><option value="SUB" selected>−</option>
                             </select>
                             <input type="text" id="valC" placeholder="C" value="23" maxlength="2">
                         </div>
                         <div class="formula-hint">Enter values in Hex (00-FF)</div>
-
                         <button id="btnBuildFormula" class="btn btn-write">⚡ Load Formula into RAM</button>
                         <button id="btnLoadSample" class="btn btn-sample">📋 Load Sample (25+05−23)</button>
                     </div>
-
                     <hr class="divider">
-
-                    <!-- MANUAL SINGLE INSTRUCTION ENTRY -->
                     <details class="manual-entry">
                         <summary>⚙️ Manual RAM Entry (Advanced)</summary>
-
                         <div class="instruction-input-group">
                             <label>Address (0-F):</label>
                             <select id="inputAddress">
@@ -106,47 +87,33 @@
                                 <option value="14">EH</option><option value="15">FH</option>
                             </select>
                         </div>
-
                         <div class="instruction-input-group">
                             <label>Instruction / Data:</label>
                             <select id="inputOpcode">
                                 <option value="-1">-- Select --</option>
-                                <option value="0">LDA (0000)</option>
-                                <option value="1">ADD (0001)</option>
-                                <option value="2">SUB (0010)</option>
-                                <option value="14">OUT (1110)</option>
-                                <option value="15">HLT (1111)</option>
-                                <option value="data">Raw Data</option>
+                                <option value="0">LDA (0000)</option><option value="1">ADD (0001)</option>
+                                <option value="2">SUB (0010)</option><option value="14">OUT (1110)</option>
+                                <option value="15">HLT (1111)</option><option value="data">Raw Data</option>
                             </select>
                         </div>
-
                         <div class="instruction-input-group" id="operandGroup">
                             <label>Operand (Hex):</label>
                             <input type="text" id="inputOperand" placeholder="e.g. 9 or 25" maxlength="2">
                         </div>
-
                         <button id="btnWrite" class="btn btn-sample">Write to RAM</button>
                     </details>
-
                     <div id="loaderStatus" class="status-msg"></div>
                 </div>
             </section>
 
             <!-- RAM VIEWER -->
-            <section class="panel ram-viewer">
+            <section class="panel ram-viewer" id="panelRAM">
                 <div class="panel-header">
-                    <h2>💾 RAM (16 × 8)</h2>
+                    <h2>💾 RAM (16 × 8) <br><span class="theme-subtitle" style="font-size: 0.7rem;">📖 Recipe Storage Shelf</span></h2>
                 </div>
                 <div class="panel-body">
                     <table class="ram-table">
-                        <thead>
-                            <tr>
-                                <th>Addr</th>
-                                <th>Hex</th>
-                                <th>Binary</th>
-                                <th>Decoded</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Addr</th><th>Hex</th><th>Binary</th><th>Decoded</th></tr></thead>
                         <tbody id="ramTableBody"></tbody>
                     </table>
                 </div>
@@ -155,8 +122,6 @@
 
         <!-- CENTER COLUMN: Architecture Diagram -->
         <section class="center-panel">
-
-            <!-- CONTROL BUTTONS -->
             <div class="control-bar">
                 <button id="btnStep" class="btn btn-step">⏭ Step</button>
                 <button id="btnRun" class="btn btn-run">▶ Run</button>
@@ -168,39 +133,25 @@
                 </div>
             </div>
 
-            <!-- STATUS BAR -->
             <div class="status-bar">
-                <div class="status-item">
-                    <span class="status-label">State:</span>
-                    <span id="cpuState" class="status-value state-idle">IDLE</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">T-State:</span>
-                    <span id="tState" class="status-value">T1 (FETCH)</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Cycle:</span>
-                    <span id="cycleCount" class="status-value">0</span>
-                </div>
+                <div class="status-item"><span class="status-label">State:</span><span id="cpuState" class="status-value state-idle">IDLE</span></div>
+                <div class="status-item"><span class="status-label">T-State:</span><span id="tState" class="status-value">T1 (FETCH)</span></div>
+                <div class="status-item"><span class="status-label">Cycle:</span><span id="cycleCount" class="status-value">0</span></div>
             </div>
 
             <!-- ARCHITECTURE BLOCK DIAGRAM -->
             <div class="architecture-diagram">
-
-                <!-- ROW 1: PC and MAR -->
+                <!-- ROW 1 -->
                 <div class="arch-row row-top">
                     <div class="register-block" id="blockPC">
-                        <div class="reg-label">Program Counter</div>
+                        <div class="reg-label">Program Counter <br><span class="theme-subtitle">🎟️ Customer Queue Ticket</span></div>
                         <div class="reg-name">PC</div>
                         <div class="reg-value" id="regPC">0000</div>
                         <div class="reg-decimal">(Dec: <span id="regPC_dec">0</span>)</div>
                     </div>
-                    <div class="bus-arrow arrow-right" id="busPC_MAR">
-                        <div class="arrow-line"></div>
-                        <div class="arrow-head">▶</div>
-                    </div>
+                    <div class="bus-arrow arrow-right" id="busPC_MAR"><div class="arrow-line"></div><div class="arrow-head">▶</div></div>
                     <div class="register-block" id="blockMAR">
-                        <div class="reg-label">Memory Address Register</div>
+                        <div class="reg-label">Memory Address Register <br><span class="theme-subtitle">📋 Order Counter</span></div>
                         <div class="reg-name">MAR</div>
                         <div class="reg-value" id="regMAR">0000</div>
                         <div class="reg-decimal">(Dec: <span id="regMAR_dec">0</span>)</div>
@@ -210,68 +161,53 @@
                 <!-- W-BUS -->
                 <div class="wbus-container">
                     <div class="wbus" id="wbus">
-                        <span class="wbus-label">W-BUS (8-bit)</span>
+                        <span class="wbus-label" style="text-align: center;">W-BUS (8-bit) <br><span class="theme-subtitle" style="display:inline; color:#555;">🍣 Conveyor Belt / Serving Counter</span></span>
                         <span class="wbus-value" id="wbusValue">0000 0000</span>
                     </div>
                 </div>
 
-                <!-- ROW 2: IR and Controller -->
+                <!-- ROW 2 -->
                 <div class="arch-row row-middle">
                     <div class="register-block" id="blockIR">
-                        <div class="reg-label">Instruction Register</div>
+                        <div class="reg-label">Instruction Register <br><span class="theme-subtitle">🏷️ Current Order Ticket</span></div>
                         <div class="reg-name">IR</div>
                         <div class="reg-value" id="regIR">0000 0000</div>
                         <div class="ir-split">
-                            <div class="ir-part">
-                                <span class="ir-part-label">Opcode</span>
-                                <span class="ir-part-value" id="irOpcode">0000</span>
-                            </div>
-                            <div class="ir-part">
-                                <span class="ir-part-label">Operand</span>
-                                <span class="ir-part-value" id="irOperand">0000</span>
-                            </div>
+                            <div class="ir-part"><span class="ir-part-label">Opcode</span><span class="ir-part-value" id="irOpcode">0000</span></div>
+                            <div class="ir-part"><span class="ir-part-label">Operand</span><span class="ir-part-value" id="irOperand">0000</span></div>
                         </div>
                     </div>
-                    <div class="bus-arrow arrow-right" id="busIR_CTRL">
-                        <div class="arrow-line"></div>
-                        <div class="arrow-head">▶</div>
-                    </div>
+                    <div class="bus-arrow arrow-right" id="busIR_CTRL"><div class="arrow-line"></div><div class="arrow-head">▶</div></div>
                     <div class="register-block controller-block" id="blockController">
-                        <div class="reg-label">Controller-Sequencer</div>
+                        <div class="reg-label">Controller-Sequencer <br><span class="theme-subtitle">⏱️ Master Barista</span></div>
                         <div class="reg-name">CTRL</div>
                         <div class="ctrl-signals">
-                            <div class="signal" id="sigCp">Cp</div>
-                            <div class="signal" id="sigEp">Ep</div>
-                            <div class="signal" id="sigLm">Lm</div>
-                            <div class="signal" id="sigCE">CE</div>
-                            <div class="signal" id="sigLi">Li</div>
-                            <div class="signal" id="sigEi">Ei</div>
-                            <div class="signal" id="sigLa">La</div>
-                            <div class="signal" id="sigEa">Ea</div>
-                            <div class="signal" id="sigSu">Su</div>
-                            <div class="signal" id="sigEu">Eu</div>
-                            <div class="signal" id="sigLb">Lb</div>
-                            <div class="signal" id="sigLo">Lo</div>
+                            <div class="signal" id="sigCp">Cp</div><div class="signal" id="sigEp">Ep</div>
+                            <div class="signal" id="sigLm">Lm</div><div class="signal" id="sigCE">CE</div>
+                            <div class="signal" id="sigLi">Li</div><div class="signal" id="sigEi">Ei</div>
+                            <div class="signal" id="sigLa">La</div><div class="signal" id="sigEa">Ea</div>
+                            <div class="signal" id="sigSu">Su</div><div class="signal" id="sigEu">Eu</div>
+                            <div class="signal" id="sigLb">Lb</div><div class="signal" id="sigLo">Lo</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ROW 3: Accumulator, ALU, B-Register -->
+                <!-- ROW 3 -->
                 <div class="arch-row row-bottom">
                     <div class="register-block" id="blockAcc">
-                        <div class="reg-label">Accumulator</div>
+                        <div class="reg-label">Accumulator <br><span class="theme-subtitle">🥤 Main Blender Cup</span></div>
                         <div class="reg-name">A</div>
                         <div class="reg-value" id="regAcc">0000 0000</div>
                         <div class="reg-decimal">Hex: <span id="regAcc_hex">00</span> | Dec: <span id="regAcc_dec">0</span></div>
                     </div>
                     <div class="alu-block" id="blockALU">
-                        <div class="reg-label">Adder/Subtractor</div>
+                        <div class="reg-label">Adder/Subtractor <br><span class="theme-subtitle">🧪 Flavor & Topping Mixer</span></div>
                         <div class="reg-name">ALU</div>
                         <div class="alu-operation" id="aluOp">—</div>
                         <div class="reg-value" id="regALU">0000 0000</div>
                     </div>
                     <div class="register-block" id="blockB">
-                        <div class="reg-label">B Register</div>
+                        <div class="reg-label">B Register <br><span class="theme-subtitle">🧋 Extra Toppings Slot</span></div>
                         <div class="reg-name">B</div>
                         <div class="reg-value" id="regB">0000 0000</div>
                         <div class="reg-decimal">Hex: <span id="regB_hex">00</span> | Dec: <span id="regB_dec">0</span></div>
@@ -293,20 +229,17 @@
             </section>
         </section>
 
-        <!-- RIGHT COLUMN: Output -->
+        <!-- RIGHT COLUMN -->
         <aside class="right-panel">
-
-            <!-- OUTPUT REGISTER -->
-            <section class="panel output-panel">
+            <section class="panel output-panel" id="panelOUT">
                 <div class="panel-header">
-                    <h2>📺 Output Register</h2>
+                    <h2>📺 Output Register <br><span class="theme-subtitle" style="font-size: 0.7rem;">🧋 Final Served Cup & Pearl Indicators</span></h2>
                 </div>
                 <div class="panel-body">
                     <div class="output-display">
                         <div class="output-hex" id="outputHex">00H</div>
                         <div class="output-decimal">(Dec: <span id="outputDec">0</span>)</div>
                     </div>
-
                     <div class="led-section">
                         <h3>Binary LED Display</h3>
                         <div class="led-row">
@@ -324,28 +257,16 @@
                 </div>
             </section>
 
-            <!-- OUTPUT HISTORY -->
             <section class="panel output-history">
-                <div class="panel-header">
-                    <h2>📊 Output History</h2>
-                </div>
-                <div class="panel-body">
-                    <div id="outputHistory" class="output-history-list">
-                        <div class="history-empty">No outputs yet</div>
-                    </div>
-                </div>
+                <div class="panel-header"><h2>📊 Output History</h2></div>
+                <div class="panel-body"><div id="outputHistory" class="output-history-list"><div class="history-empty">No outputs yet</div></div></div>
             </section>
 
-            <!-- INSTRUCTION REFERENCE -->
             <section class="panel reference-panel">
-                <div class="panel-header">
-                    <h2>📖 Instruction Set</h2>
-                </div>
+                <div class="panel-header"><h2>📖 Instruction Set</h2></div>
                 <div class="panel-body">
                     <table class="ref-table">
-                        <thead>
-                            <tr><th>Mnemonic</th><th>Opcode</th><th>Function</th></tr>
-                        </thead>
+                        <thead><tr><th>Mnemonic</th><th>Opcode</th><th>Function</th></tr></thead>
                         <tbody>
                             <tr><td><code>LDA</code></td><td>0000</td><td>Load A from RAM</td></tr>
                             <tr><td><code>ADD</code></td><td>0001</td><td>Add to A</td></tr>
@@ -359,7 +280,6 @@
         </aside>
     </main>
 
-    <!-- FOOTER -->
     <footer class="main-footer">
         <p>SAP-1 Simulator — Computer Architecture and Organization Project</p>
     </footer>
