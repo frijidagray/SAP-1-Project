@@ -18,6 +18,7 @@ const OPCODE_NAMES = { 0: 'LDA', 1: 'ADD', 2: 'SUB', 14: 'OUT', 15: 'HLT' };
 const DOM = {};
 let runInterval = null;
 let outputCount = 0;
+let lastRecipe = "—";          // stores the last loaded formula for the receipt
 
 // CACHE DOM
 function cacheDOMReferences() {
@@ -107,7 +108,7 @@ function toBinary8(val) {
 function toHex2(val) { return (val & 0xFF).toString(16).toUpperCase().padStart(2, '0'); }
 function toHex1(val) { return (val & 0xF).toString(16).toUpperCase(); }
 
-// SOUND FX (Web Audio, no files needed)
+// SOUND FX
 const SND = { on: false, ctx: null };
 function beep(freq, delay, dur, type, vol) {
     if (!SND.on) return;
@@ -128,7 +129,7 @@ const sfx = {
     fin:  () => { beep(660, 0.06, 0.14, 'triangle', 0.14); beep(660, 0.26, 0.14, 'triangle', 0.14); }
 };
 
-// REGISTER TRANSFER GLOW (uses .active-glow from style.css)
+// REGISTER TRANSFER GLOW
 const GLOW_MAP = { Ep: 'blockPC', Lm: 'blockMAR', CE: 'panelRAM', Li: 'blockIR', Ei: 'blockIR',
                    La: 'blockAcc', Ea: 'blockAcc', Su: 'blockALU', Eu: 'blockALU', Lb: 'blockB', Lo: 'panelOUT' };
 function updateGlow() {
@@ -139,14 +140,14 @@ function updateGlow() {
     });
 }
 
-// PC QUEUE-TICKET ICON: shows the live PC value, wiggles when called (Ep), prints a new ticket on count (Cp)
+// PC QUEUE-TICKET ICON
 function pcTicketFx(cls) {
     const ic = document.querySelector('#blockPC .mt-icon');
     if (!ic) return;
     const ms = Math.min(600, Math.max(150, (parseInt(DOM.speedSlider.value) || 800) * 0.8));
     ic.style.setProperty('--pcdur', ms + 'ms');
     ic.classList.remove('pc-print', 'pc-call');
-    void ic.offsetWidth; // restart the animation
+    void ic.offsetWidth;
     ic.classList.add(cls);
 }
 function updatePCTicket() {
@@ -156,13 +157,13 @@ function updatePCTicket() {
     else if (CPU.activeSignals.has('Ep')) pcTicketFx('pc-call');
 }
 
-// MORE ICON ANIMATIONS: MAR bell rings on Lm, B toppings drop on Lb, Output cup fills + hops on Lo
+// ICON ANIMATIONS
 function iconFx(host, cls) {
     const ic = document.querySelector('#' + host + ' .mt-icon');
     if (!ic) return;
     ic.style.setProperty('--fxdur', Math.min(800, Math.max(200, (parseInt(DOM.speedSlider.value) || 800) * 0.8)) + 'ms');
     ic.classList.remove(cls);
-    void ic.offsetWidth; // restart the animation
+    void ic.offsetWidth;
     ic.classList.add(cls);
 }
 function updateOutputCup() {
@@ -186,6 +187,195 @@ function updateIconFx() {
     if (CPU.activeSignals.has('Lo')) iconFx('panelOUT', 'fx-out');
     updateOutputCup();
 }
+
+// ========== ORDER COMPLETE RECEIPT POPUP ==========
+function showReceipt() {
+    // Remove existing receipt if any
+    const old = document.getElementById('mt-receipt');
+    if (old) old.remove();
+
+    const outHex = toHex2(CPU.OUT);
+    const outDec = CPU.OUT;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'mt-receipt';
+    overlay.innerHTML = `
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <div class="receipt-logo">🧋</div>
+                <h2>SAP-1 MILKTEA SHOP</h2>
+                <p class="receipt-sub">Official Order Receipt</p>
+            </div>
+
+            <div class="receipt-body">
+                <div class="receipt-row">
+                    <span>Recipe</span>
+                    <strong>${lastRecipe}</strong>
+                </div>
+                <div class="receipt-row highlight">
+                    <span>Total Served</span>
+                    <strong>${outHex}H <small>(${outDec} Boba Pearls)</small></strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Status</span>
+                    <strong class="ready">Order Ready for Pickup! 🧋</strong>
+                </div>
+            </div>
+
+            <div class="receipt-footer">
+                <p>Thank you for computing with us!</p>
+                <button class="receipt-close" id="btnCloseReceipt">Close Receipt</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Close button
+    document.getElementById('btnCloseReceipt').addEventListener('click', () => {
+        overlay.classList.add('closing');
+        setTimeout(() => overlay.remove(), 280);
+    });
+
+    // Click outside to close
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.classList.add('closing');
+            setTimeout(() => overlay.remove(), 280);
+        }
+    });
+}
+
+// Inject receipt CSS once
+(function injectReceiptCSS() {
+    if (document.getElementById('mt-receipt-css')) return;
+    const style = document.createElement('style');
+    style.id = 'mt-receipt-css';
+    style.textContent = `
+        #mt-receipt {
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 35, 46, 0.55);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: receiptFadeIn 0.3s ease;
+        }
+        #mt-receipt.closing {
+            animation: receiptFadeOut 0.28s ease forwards;
+        }
+        .receipt-card {
+            background: #FFF9F0;
+            width: 340px;
+            border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            overflow: hidden;
+            border: 3px solid #FFCED8;
+            animation: receiptPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .receipt-header {
+            background: linear-gradient(135deg, #FFCED8, #FFE8C4);
+            padding: 1.4rem 1.2rem 1rem;
+            text-align: center;
+        }
+        .receipt-logo {
+            font-size: 2.4rem;
+            margin-bottom: 0.3rem;
+        }
+        .receipt-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #2D232E;
+            letter-spacing: 0.5px;
+        }
+        .receipt-sub {
+            margin: 0.2rem 0 0;
+            font-size: 0.75rem;
+            color: #6b5b5e;
+            font-weight: 600;
+        }
+        .receipt-body {
+            padding: 1.3rem 1.4rem;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.9rem;
+            font-size: 0.9rem;
+        }
+        .receipt-row span {
+            color: #6b5b5e;
+            font-weight: 600;
+        }
+        .receipt-row strong {
+            color: #2D232E;
+            text-align: right;
+            max-width: 60%;
+        }
+        .receipt-row.highlight {
+            background: #FFE8C4;
+            margin: 0 -0.6rem 0.9rem;
+            padding: 0.7rem 0.6rem;
+            border-radius: 10px;
+        }
+        .receipt-row.highlight strong {
+            color: #c0392b;
+            font-size: 1.05rem;
+        }
+        .receipt-row.highlight small {
+            font-size: 0.75rem;
+            color: #7a5c3e;
+            font-weight: 600;
+        }
+        .ready {
+            color: #27ae60 !important;
+        }
+        .receipt-footer {
+            background: #FFF4DE;
+            padding: 1rem 1.4rem 1.3rem;
+            text-align: center;
+            border-top: 1px dashed #FFCED8;
+        }
+        .receipt-footer p {
+            margin: 0 0 0.9rem;
+            font-size: 0.8rem;
+            color: #6b5b5e;
+            font-style: italic;
+        }
+        .receipt-close {
+            background: #FF5E8E;
+            color: white;
+            border: none;
+            padding: 0.65rem 1.8rem;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 94, 142, 0.35);
+        }
+        .receipt-close:hover {
+            background: #e84a7a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 94, 142, 0.45);
+        }
+        @keyframes receiptFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes receiptFadeOut {
+            from { opacity: 1; }
+            to   { opacity: 0; }
+        }
+        @keyframes receiptPop {
+            from { transform: scale(0.7) translateY(30px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+})();
 
 // DISPLAY UPDATES
 function updateAllDisplays() {
@@ -293,6 +483,7 @@ function updateSignalDisplay() {
     updateGlow();
     updatePCTicket();
     updateIconFx();
+    // updateBusFlow removed – no more moving boba
 }
 
 function clearBlockHighlights() {
@@ -316,7 +507,7 @@ function activateBus() {
     w.style.setProperty('--belt', ms + 'ms');
     w.style.setProperty('--spin', Math.max(1, Math.round(ms / 200)));
     w.classList.remove('active');
-    void w.offsetWidth; // restart the animation for this transfer
+    void w.offsetWidth;
     w.classList.add('active');
 }
 function activateArrow(el) { if (el) el.classList.add('active'); }
@@ -435,6 +626,9 @@ function executeT3(opcode, operand) {
             CPU.tState = 1;
             CPU.cycleCount++;
             updateStatusDisplay();
+
+            // 🎉 Show the cute receipt when the order is complete
+            setTimeout(() => showReceipt(), 400);
             break;
     }
 }
@@ -606,25 +800,27 @@ function buildFormulaProgram() {
     }
 
     CPU.RAM.fill(0);
-    // A, B, C sit in three consecutive slots starting at the chosen LDA address
     CPU.RAM[0x0] = ldaSourceAddr;
     CPU.RAM[0x1] = ((op1 === 'ADD') ? 0x10 : 0x20) | (ldaSourceAddr + 1);
     CPU.RAM[0x2] = ((op2 === 'ADD') ? 0x10 : 0x20) | (ldaSourceAddr + 2);
     CPU.RAM[0x3] = 0xEF;
     CPU.RAM[0x4] = 0xFF;
-    CPU.RAM[ldaSourceAddr] = valA & 0xFF;
+    CPU.RAM[ldaSourceAddr]     = valA & 0xFF;
     CPU.RAM[ldaSourceAddr + 1] = valB & 0xFF;
     CPU.RAM[ldaSourceAddr + 2] = valC & 0xFF;
 
     CPU.hasProgram = true;
 
+    // Save recipe for the receipt
+    const s1 = op1 === 'ADD' ? '+' : '−';
+    const s2 = op2 === 'ADD' ? '+' : '−';
+    lastRecipe = `${hexA}H ${s1} ${hexB}H ${s2} ${hexC}H`;
+
     resetCPU();
     updateRAMDisplay();
 
-    const s1 = op1 === 'ADD' ? '+' : '−';
-    const s2 = op2 === 'ADD' ? '+' : '−';
-    showLoaderStatus(`Loaded: ${hexA}H ${s1} ${hexB}H ${s2} ${hexC}H`, 'success');
-    log(`Formula loaded: ${hexA}H ${s1} ${hexB}H ${s2} ${hexC}H`, 'info');
+    showLoaderStatus(`Loaded: ${lastRecipe}`, 'success');
+    log(`Formula loaded: ${lastRecipe}`, 'info');
 }
 
 function writeToRAM() {
@@ -692,6 +888,9 @@ function loadSampleProgram() {
     CPU.RAM[0xB] = 0x23;
 
     CPU.hasProgram = true;
+
+    // Save recipe for the receipt
+    lastRecipe = "25H + 05H − 23H";
 
     resetCPU();
     updateRAMDisplay();
@@ -777,8 +976,7 @@ function init() {
 document.addEventListener('DOMContentLoaded', init);
 
 
-/* ===== MILKTEA THEME: icons, name/subtitle pills, W-BUS flow =====
-   Built for this index.html (finds cards by their ids). Runs after init(). */
+/* ===== MILKTEA THEME ===== */
 (() => {
   const svg = (b) => `<svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="#2D232E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${b}</svg>`;
   const pearls = (pts, r = 2.4) => `<g fill="#4a2f2a" stroke="none">${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
@@ -843,6 +1041,9 @@ document.addEventListener('DOMContentLoaded', init);
 @keyframes shake{0%,100%{transform:rotate(0)}10%{transform:rotate(-14deg)}25%{transform:rotate(12deg)}40%{transform:rotate(-10deg)}55%{transform:rotate(8deg)}70%{transform:rotate(-5deg)}85%{transform:rotate(3deg)}}
 @keyframes op-pop{0%{transform:scale(1)}40%{transform:scale(1.6)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.fx-a .acc-cup,.fx-a .acc-straw,.fx-a .acc-pearls circle,.fx-alu .alu-shaker,.fx-alu .alu-drops,.fx-alu .alu-plus,.fx-alu .alu-minus{animation:none}.acc-tea{transition:none}}
+.wbus.rev.active .mt-cup{animation-name:cup-ride-rev}.wbus.rev.active .mt-track{animation-name:belt-move-rev}
+@keyframes cup-ride-rev{from{left:calc(100% - 34px)}to{left:12px}}
+@keyframes belt-move-rev{to{background-position:-20px 0}}
 .pc-ticket,.pc-num{transform-box:fill-box;transform-origin:center}
 .pc-print .pc-ticket{animation:pc-print var(--pcdur,500ms) cubic-bezier(.2,.8,.3,1)}
 .pc-print .pc-num{animation:pc-pop var(--pcdur,500ms) ease-out}

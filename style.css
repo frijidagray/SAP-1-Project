@@ -174,3 +174,36 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
     transform: scale(1.04) !important;
     z-index: 10;
 }
+/* Boba Pearl Animation for W-BUS */
+.boba-pearl {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #FF5E8E; /* Deep Pink Pearl */
+    border-radius: 50%;
+    box-shadow: 0 0 8px #FF5E8E;
+    z-index: 10;
+    pointer-events: none;
+}
+
+@keyframes flowAcross {
+    0% { transform: translate(0, 0); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: var(--travel); opacity: 0; }
+}
+
+/* Make LEDs look like 3D Boba Pearls */
+.led {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #2d2d44, #1a1a2e);
+    box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+.led.on {
+    background: radial-gradient(circle at 30% 30%, #ff8eaf, #FF5E8E);
+    box-shadow: 0 0 15px #FF5E8E, inset -2px -2px 5px rgba(0,0,0,0.2);
+}
