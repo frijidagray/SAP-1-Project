@@ -45,14 +45,16 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
 .subtitle { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
 .header-badge span { background: rgba(255,255,255,0.7); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); border: 1px solid var(--border-light); }
 
-.simulator-layout { 
-    max-width: 1600px; 
-    margin: 1.5rem auto; 
-    padding: 0 1rem; 
-    display: grid; 
-    grid-template-columns: 310px 1fr 290px; /* Ginawang 1fr ang gitna para ito ang sumakop sa halos buong natitirang espasyo */
-    gap: 1.2rem; 
-    align-items: start; 
+.simulator-layout {
+    max-width: 1400px;
+    width: 100%;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: minmax(280px, 320px) 1fr minmax(260px, 300px);
+    gap: 1.2rem;
+    align-items: start;
+    box-sizing: border-box;
 }
 .panel { background: var(--bg-white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); overflow: hidden; margin-bottom: 1.2rem; transition: all 0.3s ease; }
 .panel-header { background: linear-gradient(135deg, var(--cream), var(--light-pink)); padding: 0.7rem 1rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
@@ -215,9 +217,10 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
     background: linear-gradient(90deg, var(--cream), var(--peach), var(--cream)); 
     border: 2px solid var(--peach-dark); 
     border-radius: 25px; 
-    padding: 0.6rem 2rem;       
+    padding: 0.6rem 2rem;      
     width: 100%;          
-    max-width: 800px;          
+    max-width: 100%; 
+    box-sizing: border-box; 
     justify-content: space-between; 
 }
 .wbus-label { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
@@ -353,5 +356,67 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
     100% {
         transform: translateY(-110vh) scale(1.2);
         opacity: 0;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    /* 1. Gawing isang column na lang ang buong layout para patong-patong */
+    .simulator-layout {
+        grid-template-columns: 1fr !important;
+        padding: 0 0.5rem;
+    }
+
+    /* 2. Ayusin ang header para hindi sumobra sa screen */
+    .main-header .header-content {
+        flex-direction: column;
+        gap: 0.8rem;
+        text-align: center;
+    }
+
+    .logo-section {
+        flex-direction: column;
+    }
+
+    .header-badge {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* 3. Siguraduhing kasya ang control bar (Step, Run, Reset) sa mobile screen */
+    .control-bar {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: stretch;
+    }
+
+    .control-bar .speed-control {
+        justify-content: center;
+    }
+
+    /* 4. Ayusin ang architecture rows para hindi magtabihan ang mga register blocks */
+    .arch-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* 5. Gawing flexible ang mga bus arrows sa pagitan ng registers */
+    .bus-arrow {
+        transform: rotate(90deg); /* Pahalang to patayo kapag nasa mobile */
+        margin: 0.5rem 0;
+    }
+
+    /* 6. I-adjust ang lapad ng W-BUS at RAM table para hindi lumagpas sa mobile screen */
+    .wbus {
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .ram-table th, .ram-table td {
+        padding: 0.4rem 0.2rem;
+        font-size: 0.75rem;
     }
 }
