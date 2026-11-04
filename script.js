@@ -19,6 +19,41 @@ const DOM = {};
 let runInterval = null;
 let outputCount = 0;
 
+// === SOUND SYSTEM ===
+let soundEnabled = false;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+    if (!soundEnabled) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'tick') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === 'ding') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    } else if (type === 'halt') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+    }
+}
+
 // CACHE DOM
 function cacheDOMReferences() {
     DOM.regPC = document.getElementById('regPC');
@@ -57,6 +92,8 @@ function cacheDOMReferences() {
     DOM.blockAcc = document.getElementById('blockAcc');
     DOM.blockALU = document.getElementById('blockALU');
     DOM.blockB = document.getElementById('blockB');
+    DOM.panelRAM = document.getElementById('panelRAM'); 
+    DOM.panelOUT = document.getElementById('panelOUT');
 
     DOM.cpuState = document.getElementById('cpuState');
     DOM.tState = document.getElementById('tState');
@@ -81,6 +118,8 @@ function cacheDOMReferences() {
     DOM.logContainer = document.getElementById('logContainer');
     DOM.loaderStatus = document.getElementById('loaderStatus');
     DOM.outputHistory = document.getElementById('outputHistory');
+
+    DOM.soundToggle = document.getElementById('soundToggle');
 
     DOM.signals = {
         Cp: document.getElementById('sigCp'),
@@ -107,13 +146,28 @@ function toBinary8(val) {
 function toHex2(val) { return (val & 0xFF).toString(16).toUpperCase().padStart(2, '0'); }
 function toHex1(val) { return (val & 0xF).toString(16).toUpperCase(); }
 
-// DISPLAY UPDATES
+// DISPLAYS & GLOW LOGIC
+function applyDynamicGlow() {
+    [DOM.blockPC, DOM.blockMAR, DOM.panelRAM, DOM.blockIR, DOM.blockAcc, DOM.blockALU, DOM.blockB, DOM.panelOUT]
+        .forEach(el => { if(el) el.classList.remove('active-glow') });
+
+    if (CPU.activeSignals.has('Ep') && DOM.blockPC) DOM.blockPC.classList.add('active-glow');
+    if (CPU.activeSignals.has('Lm') && DOM.blockMAR) DOM.blockMAR.classList.add('active-glow');
+    if (CPU.activeSignals.has('CE') && DOM.panelRAM) DOM.panelRAM.classList.add('active-glow');
+    if ((CPU.activeSignals.has('Li') || CPU.activeSignals.has('Ei')) && DOM.blockIR) DOM.blockIR.classList.add('active-glow');
+    if ((CPU.activeSignals.has('La') || CPU.activeSignals.has('Ea')) && DOM.blockAcc) DOM.blockAcc.classList.add('active-glow');
+    if ((CPU.activeSignals.has('Su') || CPU.activeSignals.has('Eu')) && DOM.blockALU) DOM.blockALU.classList.add('active-glow');
+    if (CPU.activeSignals.has('Lb') && DOM.blockB) DOM.blockB.classList.add('active-glow');
+    if (CPU.activeSignals.has('Lo') && DOM.panelOUT) DOM.panelOUT.classList.add('active-glow');
+}
+
 function updateAllDisplays() {
     updateRegisterDisplays();
     updateRAMDisplay();
     updateOutputDisplay();
     updateStatusDisplay();
     updateSignalDisplay();
+    applyDynamicGlow();
 }
 
 function updateRegisterDisplays() {
@@ -139,17 +193,24 @@ function updateRAMDisplay() {
     for (let i = 0; i < 16; i++) {
         const tr = document.createElement('tr');
         const val = CPU.RAM[i];
+        const opcode = (val >> 4) & 0xF;
+        const operand = val & 0xF;
 
         let hexStr = '';
         let binStr = '';
         let decoded = '';
+        
+        if (OPCODE_NAMES[opcode] !== undefined) {
+            if (opcode === 14) decoded = 'OUT';
+            else if (opcode === 15) decoded = 'HLT';
+            else decoded = `${OPCODE_NAMES[opcode]} ${toHex1(operand)}H`;
+        } else {
+            decoded = `${toHex2(val)}H`;
+        }
 
         if (!CPU.hasProgram || val !== 0) {
-                hexStr = `${toHex2(val)}H`;
-                binStr = toBinary8(val);
-
-            const opcode = (val >> 4) & 0xF;
-            const operand = val & 0xF;
+            hexStr = `${toHex2(val)}H`;
+            binStr = toBinary8(val);
 
             if (i < 5 && OPCODE_NAMES[opcode] !== undefined) {
                 if (opcode === 14) decoded = 'OUT';
@@ -162,6 +223,8 @@ function updateRAMDisplay() {
 
         tr.innerHTML = `
             <td>${toHex1(i)}H</td>
+            <td>${toHex2(val)}H</td>
+            <td style="font-size:0.7rem">${toBinary8(val)}</td>
             <td>${hexStr}</td>
             <td style="font-size:0.7rem">${binStr}</td>
             <td style="font-size:0.7rem">${decoded}</td>
@@ -214,13 +277,14 @@ function updateSignalDisplay() {
 
 function clearBlockHighlights() {
     const blocks = [DOM.blockPC, DOM.blockMAR, DOM.blockIR, DOM.blockController,
-                    DOM.blockAcc, DOM.blockALU, DOM.blockB];
+    DOM.blockAcc, DOM.blockALU, DOM.blockB];
     blocks.forEach(b => { if (b) b.classList.remove('active', 'reading', 'writing'); });
     DOM.wbus.classList.remove('active');
     DOM.busPC_MAR.classList.remove('active');
     DOM.busIR_CTRL.classList.remove('active');
     CPU.activeSignals.clear();
     updateSignalDisplay();
+    applyDynamicGlow();
 }
 
 function highlightBlock(blockEl, type = 'active') {
@@ -260,6 +324,8 @@ function addOutputHistory(value) {
 function executeTState() {
     if (CPU.halted) return;
     clearBlockHighlights();
+    playSound('tick'); // Play sound on every tick
+
     const opcode = (CPU.IR >> 4) & 0xF;
     const operand = CPU.IR & 0xF;
 
@@ -331,6 +397,7 @@ function executeT3(opcode, operand) {
             activateBus();
             log(`EXEC OUT: A(${toHex2(CPU.ACC)}H) → Output`, 'output');
             addOutputHistory(CPU.OUT);
+            playSound('ding'); // OUT Chime sound
             CPU.tState = 1;
             CPU.cycleCount++;
             break;
@@ -338,6 +405,7 @@ function executeT3(opcode, operand) {
             CPU.halted = true;
             CPU.running = false;
             log(`HLT: Processor halted.`, 'halt');
+            playSound('halt'); // HLT Beep sound
             CPU.tState = 1;
             CPU.cycleCount++;
             updateStatusDisplay();
@@ -452,7 +520,9 @@ function resetCPU() {
     DOM.btnRun.textContent = '▶ Run';
     DOM.btnStep.disabled = false;
     DOM.aluOp.textContent = '—';
-
+    
+    // Hindi na mabubura ang history dahil tinanggal na natin ang pag-clear dito.
+    
     clearBlockHighlights();
     updateAllDisplays();
     log('CPU Reset.', 'info');
@@ -460,7 +530,7 @@ function resetCPU() {
 
 function resetBuilderAndManualInputs() {
     const loadOpSelect = document.getElementById('loadOp');
-    if (loadOpSelect) loadOpSelect.value = '9H'; // O kahit anong default address mo
+    if (loadOpSelect) loadOpSelect.value = '9'; 
 
     const valA = document.getElementById('valA');
     const valB = document.getElementById('valB');
@@ -468,7 +538,6 @@ function resetBuilderAndManualInputs() {
     if (valA) valA.value = '';
     if (valB) valB.value = '';
     if (valC) valC.value = '';
-
 
     const inputAddress = document.getElementById('inputAddress');
     const inputOpcode = document.getElementById('inputOpcode');
@@ -490,12 +559,12 @@ function resetRAMTable() {
 
 // FORMULA BUILDER
 function buildFormulaProgram() {
-
     const hexA = document.getElementById('valA').value.trim() || '00';
     const hexB = document.getElementById('valB').value.trim() || '00';
     const hexC = document.getElementById('valC').value.trim() || '00';
-    
-    const ldaSourceAddr = parseInt(document.getElementById('loadOp').value, 16);
+
+    let ldaSourceAddr = parseInt(document.getElementById('loadOp').value, 16);
+    if(isNaN(ldaSourceAddr)) ldaSourceAddr = 0x09;
 
     const op1 = document.getElementById('op1').value;
     const op2 = document.getElementById('op2').value;
@@ -584,9 +653,7 @@ function loadSampleProgram() {
     if (valA) valA.value = '25';
     if (valB) valB.value = '05';
     if (valC) valC.value = '23';
-    if (loadOp) {
-        loadOp.value = '9'; // Subukan din ang '9' o '09' kung hindi lumitaw
-    }
+    if (loadOp) loadOp.value = '9'; 
     if (op1) op1.value = 'ADD';
     if (op2) op2.value = 'SUB';
 
@@ -634,7 +701,14 @@ function init() {
 
     DOM.btnStep.addEventListener('click', stepOnce);
     DOM.btnRun.addEventListener('click', runProgram);
-    DOM.btnReset.addEventListener('click', resetCPU);
+    
+    // Updated Reset
+    DOM.btnReset.addEventListener('click', () => {
+        resetCPU();
+        resetRAMTable();      
+        resetBuilderAndManualInputs(); 
+    });
+
     DOM.btnWrite.addEventListener('click', writeToRAM);
     DOM.btnLoadSample.addEventListener('click', loadSampleProgram);
     DOM.btnBuildFormula.addEventListener('click', buildFormulaProgram);
@@ -643,12 +717,6 @@ function init() {
 
     DOM.inputOperand.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
-    });
-
-    DOM.btnReset.addEventListener('click', () => {
-        resetCPU();
-        resetRAMTable();      
-        resetBuilderAndManualInputs(); 
     });
 
     DOM.speedSlider.addEventListener('input', () => {
@@ -669,6 +737,17 @@ function init() {
             }, parseInt(DOM.speedSlider.value));
         }
     });
+
+    // SOUND TOGGLE EVENT
+    if(DOM.soundToggle) {
+        DOM.soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            DOM.soundToggle.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+            DOM.soundToggle.style.background = soundEnabled ? '#FF5E8E' : '#FFCED8';
+            DOM.soundToggle.style.color = soundEnabled ? 'white' : '#1A1A2E';
+            if(soundEnabled && audioCtx.state === 'suspended') audioCtx.resume();
+        });
+    }
 
     updateAllDisplays();
     log('SAP-1 Simulator ready.', 'info');
