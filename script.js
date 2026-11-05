@@ -896,3 +896,46 @@ document.addEventListener('DOMContentLoaded', init);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyTheme); else applyTheme();
 })();
+
+// === FLOATING BUBBLES BACKGROUND GENERATOR ===
+document.addEventListener("DOMContentLoaded", () => {
+    // Tinitiyak na may container sa bawat load ng page
+    let activeContainer = document.getElementById("bubblesContainer");
+    
+    if (!activeContainer) {
+        const bgDiv = document.createElement("div");
+        bgDiv.className = "floating-bg";
+        bgDiv.innerHTML = '<div class="bubbles-container" id="bubblesContainer"></div>';
+        document.body.prepend(bgDiv);
+        activeContainer = document.getElementById("bubblesContainer");
+    }
+
+    if (activeContainer && activeContainer.children.length === 0) {
+        const bubbleCount = 30; // Bilang ng mga bula sa background
+        for (let i = 0; i < bubbleCount; i++) {
+            createBubble(activeContainer);
+        }
+    }
+});
+
+function createBubble(container) {
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble");
+
+    const size = Math.random() * 40 + 10; // Laki mula 10px hanggang 50px
+    const left = Math.random() * 100;    // Posisyon pahalang (%)
+    const duration = Math.random() * 8 + 5; // Bilis ng pag-angat (5s hanggang 13s)
+    const delay = Math.random() * 5;     // Delayed start para hindi sabay-sabay
+
+    bubble.style.width = `${size}px`;
+    bubble.style.height = `${size}px`;
+    bubble.style.left = `${left}%`;
+    bubble.style.animationDuration = `${duration}s`;
+    bubble.style.animationDelay = `${delay}s`;
+
+    container.appendChild(bubble);
+
+    bubble.addEventListener("animationiteration", () => {
+        bubble.style.left = `${Math.random() * 100}%`;
+    });
+}
