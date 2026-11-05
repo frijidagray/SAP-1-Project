@@ -33,7 +33,14 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { font-size: 14px; }
-body { font-family: var(--font-sans); background: var(--bg-body); color: var(--text-primary); line-height: 1.5; min-height: 100vh; }
+body { 
+    font-family: var(--font-sans); 
+    background: var(--bg-body); 
+    color: var(--text-primary); 
+    line-height: 1.5; 
+    min-height: 100vh; 
+    position: relative;
+}
 
 .main-header { background: linear-gradient(135deg, var(--pink) 0%, var(--peach) 50%, var(--cream) 100%); border-bottom: 3px solid var(--pink-dark); padding: 1rem 2rem; box-shadow: var(--shadow-md); }
 .header-content { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
@@ -167,30 +174,12 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
 ::-webkit-scrollbar-track { background: var(--cream); }
 ::-webkit-scrollbar-thumb { background: var(--pink-dark); border-radius: 3px; }
 
-/* === NEW: DYNAMIC GLOW ANIMATION EFFECTS === */
+/* === DYNAMIC GLOW === */
 .active-glow {
     border: 2px solid #FF5E8E !important;
     box-shadow: 0 0 25px rgba(255, 94, 142, 0.7), inset 0 0 10px rgba(255, 206, 216, 0.5) !important;
     transform: scale(1.04) !important;
     z-index: 10;
-}
-/* Boba Pearl Animation for W-BUS */
-.boba-pearl {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: #FF5E8E; /* Deep Pink Pearl */
-    border-radius: 50%;
-    box-shadow: 0 0 8px #FF5E8E;
-    z-index: 10;
-    pointer-events: none;
-}
-
-@keyframes flowAcross {
-    0% { transform: translate(0, 0); opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { transform: var(--travel); opacity: 0; }
 }
 
 /* Make LEDs look like 3D Boba Pearls */
@@ -203,7 +192,124 @@ body { font-family: var(--font-sans); background: var(--bg-body); color: var(--t
     transition: all 0.3s ease;
 }
 
-.led.on {
+.led.led-on {
     background: radial-gradient(circle at 30% 30%, #ff8eaf, #FF5E8E);
     box-shadow: 0 0 15px #FF5E8E, inset -2px -2px 5px rgba(0,0,0,0.2);
+}
+/* ===== Theme Toggle Button ===== */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font-sans);
+}
+
+.theme-toggle:hover {
+  background: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-icon {
+  font-size: 1.1rem;
+}
+
+/* ===== Dark Mode Variables ===== */
+html.dark {
+  --bg-body: #1a1520;
+  --bg-white: #251f2b;
+  --text-primary: #f5e9ec;
+  --text-secondary: #cbb8c0;
+  --text-muted: #9a8490;
+  --border-light: #3d3240;
+  --border-medium: #4a3d4f;
+  --cream: #3a2f38;
+  --peach: #4a3a45;
+  --light-pink: #3d2f3a;
+  --pink: #5a3f4a;
+  --pink-dark: #7a5060;
+  --cream-dark: #4a3d48;
+  --peach-dark: #5a4550;
+}
+
+html.dark body {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+
+html.dark .panel {
+  background: var(--bg-white);
+  border-color: var(--border-light);
+}
+
+html.dark .panel-header {
+  background: linear-gradient(135deg, #3a2f38, #4a3a45);
+}
+
+html.dark .main-header {
+  background: linear-gradient(135deg, #4a3540, #3a2f38, #2a2430);
+  border-bottom-color: #6a4a5a;
+}
+
+html.dark .register-block {
+  background: linear-gradient(145deg, #3a2f38, #4a3a45);
+  border-color: var(--border-medium);
+}
+
+html.dark .controller-block {
+  background: linear-gradient(145deg, #4a3a45, #3a2f38);
+}
+
+html.dark .alu-block {
+  background: linear-gradient(145deg, #5a3f4a, #4a3a45);
+  border-color: #7a5060;
+}
+
+html.dark .wbus {
+  background: linear-gradient(90deg, #3a2f38, #4a3a45, #3a2f38);
+  border-color: #5a4550;
+}
+
+html.dark .control-bar {
+  background: linear-gradient(135deg, #3d2f3a, #3a2f38);
+}
+
+html.dark .status-bar {
+  background: var(--bg-white);
+}
+
+html.dark .log-container {
+  background: #1f1a24;
+  border-color: var(--border-light);
+}
+
+html.dark .ram-table thead {
+  background: #3a2f38;
+}
+
+html.dark .theme-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-light);
+  color: var(--text-secondary);
+}
+
+html.dark .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Make floating bubbles more visible in dark mode */
+html.dark .tea-bubble {
+  background: radial-gradient(circle at 30% 30%,
+    rgba(255, 180, 200, 0.4),
+    rgba(255, 140, 170, 0.18)) !important;
+  box-shadow: 0 0 16px rgba(255, 130, 170, 0.25) !important;
 }
